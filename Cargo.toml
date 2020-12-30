@@ -1,0 +1,7 @@
+[workspace]
+default-members=["example-app"]
+members = [
+    "example-app",
+    "example-impl",
+    "hot-reload",
+]
