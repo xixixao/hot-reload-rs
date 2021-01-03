@@ -3,5 +3,6 @@ default-members=["example-app"]
 members = [
     "example-app",
     "example-impl",
+    "shared",
     "hot-reload",
 ]

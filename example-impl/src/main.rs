@@ -1,4 +1,4 @@
-use hot_reload::*;
+use hot_reload::simple_shared_memory::*;
 
 fn main() {
     let window_width = 300;

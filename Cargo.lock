@@ -464,6 +464,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "shared"
+version = "0.1.0"
+dependencies = [
+ "hot-reload",
+]
+
+[[package]]
 name = "shared_memory"
 version = "0.11.3"
 source = "git+https://github.com/xixixao/shared_memory-rs?branch=patch-1#0f977f58afeea4dc7ca274dce6a83f2b51b9f9b5"
