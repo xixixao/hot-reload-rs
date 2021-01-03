@@ -1,4 +1,4 @@
-use hot_reload::simple_shared_memory::*;
+use hot_reload::serde::*;
 use hot_reload::*;
 
 pub struct HotReloaded {
@@ -9,28 +9,35 @@ pub struct HotReloaded {
     pub buffer: Box<dyn SharedMemory<[u32]>>,
 }
 
+// These are the arguments the reloadable process will need to get the shared
+// state.
+#[derive(Serialize, Deserialize)]
+pub struct Arguments {
+    pub window_width: usize,
+    pub window_height: usize,
+}
+
 // This initiates the shared state and starts the child hot reload watch process
-pub fn owner(window_width: usize, window_height: usize) -> Result<HotReloaded> {
-    let mut state = setup(Process::Owner, window_width * window_height)?;
-    state.hot_reload.start(
-        "example-impl",
-        &[&window_width.to_string(), &window_height.to_string()],
-    )?;
+pub fn owner(arguments: Arguments) -> Result<HotReloaded> {
+    let mut state = setup(Process::Owner, &arguments)?;
+    state.hot_reload.start("example-impl", &arguments)?;
     Ok(state)
 }
 
 // This gets the shared state from the reloadable process
 pub fn reloadable() -> Result<HotReloaded> {
-    let [window_width, window_height] = reloadable_process_args!(2)?;
-    setup(
-        Process::Reloadable,
-        window_width.parse::<usize>()? * window_height.parse::<usize>()?,
-    )
+    setup(Process::Reloadable, &reloadable_process_args()?)
 }
 
 // Implementation of the shared state using HotReload.
-fn setup(process: Process, window_len: usize) -> Result<HotReloaded> {
+fn setup(
+    process: Process,
+    Arguments {
+        window_width,
+        window_height,
+    }: &Arguments,
+) -> Result<HotReloaded> {
     let hot_reload = HotReload::new(process);
-    let buffer = hot_reload.slice::<u32>("buffer", window_len)?;
+    let buffer = hot_reload.slice::<u32>("buffer", window_width * window_height)?;
     Ok(HotReloaded { hot_reload, buffer })
 }

@@ -1,4 +1,6 @@
 pub mod simple_shared_memory;
+pub extern crate serde;
+pub use simple_shared_memory::SharedMemory;
 use simple_shared_memory::*;
 
 pub enum Process {
@@ -14,6 +16,15 @@ macro_rules! reloadable_process_args {
             as std::result::Result<[String; 2], _>)
             .map_err(|_| "Hot reload initialization failed")
     }};
+}
+
+pub fn reloadable_process_args<T>() -> Result<T>
+where
+    T: serde::de::DeserializeOwned,
+{
+    Ok(ron::from_str(&std::env::args().nth(2).ok_or(
+        "Unexpected missing argument to reloadable process",
+    )?)?)
 }
 
 pub struct HotReload {
@@ -39,7 +50,14 @@ impl HotReload {
         }
     }
 
-    pub fn start(&mut self, reloadable_process_project_name: &str, args: &[&str]) -> Result<()> {
+    pub fn start<TArgs>(
+        &mut self,
+        reloadable_process_project_name: &str,
+        serialized_args: &TArgs,
+    ) -> Result<()>
+    where
+        TArgs: serde::Serialize,
+    {
         self.reloadable_watch_process = Some(
             std::process::Command::new("cargo")
                 .args(&["watch", "-x"])
@@ -49,7 +67,7 @@ impl HotReload {
                         .arg(reloadable_process_project_name)
                         .arg("--")
                         .arg(&self.shared_memory_id_prefix)
-                        .args(args)
+                        .arg(&ron::to_string(serialized_args)?)
                 ))
                 .spawn()?,
         );

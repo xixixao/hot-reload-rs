@@ -14,7 +14,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     .unwrap();
     window.limit_update_rate(Some(std::time::Duration::from_secs_f64(1.0 / TARGET_FPS)));
 
-    let mut hot_reloaded = hot_reloaded_state::owner(window_width, window_height)?;
+    let mut hot_reloaded = hot_reloaded_state::owner(hot_reloaded_state::Arguments {
+        window_width,
+        window_height,
+    })?;
 
     // let mut buffer = hot_reloaded.buffer();
     //     shared_memory_with_slice::<u32>(true, "hot_reload_buffer", window_len).unwrap();

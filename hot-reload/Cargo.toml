@@ -11,3 +11,5 @@ shared_memory = { git = "https://github.com/xixixao/shared_memory-rs" , branch =
 raw_sync = "0.1.5"
 rand = "0.8.0"
 anyhow = "1.0.37"
+serde = "1.0.118"
+ron = "0.6.4"
