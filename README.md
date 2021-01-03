@@ -4,8 +4,8 @@ A different take from https://github.com/irh/rust-hot-reloading and https://fast
 
 To run it, use:
 
-```fish
-cargo run &; RUST_BACKTRACE=1 cargo-watch -s "cargo run -p example-impl"
+```sh
+cargo run
 ```
 
 ## Why hot-reload?
@@ -28,22 +28,12 @@ At minimum, for minifb, we will want to have a shared `buffer` which the **reloa
 
 Other examples of shared state are:
 
-- The window size, so that we don't need to hardcode or pass the window size to both processes
-- User input, like clicks, can be passed from **owner** to **reloadable**
+- User input, like clicks, can be passed from **owner** to **reloadable** via a channel.
 
 ### 2. Create shared state definition
 
-Using the `HotReload` library we will declare
+Using the `hot-reload` library. See `hot-reloaded-state`.
 
 ### 3. Split up the implementation
 
-Instead of
-
-buffer = vec![];
-render(buffer)
-update_window(buffer)
-
-Do
-
-HotReloadable {buffer} = reloadable
-update_window(buffer)
+See `example-app` and `example-impl`.

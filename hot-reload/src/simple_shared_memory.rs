@@ -1,16 +1,17 @@
+use anyhow::*;
 use raw_sync::locks::*;
 use shared_memory::*;
 
 // Provides a cross-process channel with a familiar API, similar to [`std::sync::mpsc::channel`].
 pub fn shared_channel<T>(
   is_owner: bool,
-  file_name: &str,
+  identifier: &str,
 ) -> Result<SharedChannel<T>, Box<dyn std::error::Error>>
 where
   T: Copy,
 {
   Ok(SharedChannel {
-    memory: shared_memory_with_mutex::<SharedChannelInternal<T>>(is_owner, file_name)?,
+    memory: shared_memory_with_mutex::<SharedChannelInternal<T>>(is_owner, identifier)?,
   })
 }
 
@@ -95,10 +96,10 @@ impl<T> SharedMemory<T> for SharedMemoryWithMutex<T> {
 // at compile time.
 pub fn shared_memory<T>(
   is_owner: bool,
-  file_name: &str,
+  identifier: &str,
 ) -> Result<SharedMemorySimple<T>, Box<dyn std::error::Error>> {
   Ok(SharedMemorySimple {
-    memory: get_shared_memory(is_owner, file_name, std::mem::size_of::<T>())?,
+    memory: get_shared_memory(is_owner, identifier, std::mem::size_of::<T>())?,
     memory_type: std::marker::PhantomData,
   })
 }
@@ -106,11 +107,11 @@ pub fn shared_memory<T>(
 // Provides a shared memory between two processes, without synchronization, with dynamic size.
 pub fn shared_memory_with_slice<T>(
   is_owner: bool,
-  file_name: &str,
+  identifier: &str,
   length: usize,
 ) -> Result<SharedMemorySlice<T>, Box<dyn std::error::Error>> {
   Ok(SharedMemorySlice {
-    memory: get_shared_memory(is_owner, file_name, std::mem::size_of::<T>() * length)?,
+    memory: get_shared_memory(is_owner, identifier, std::mem::size_of::<T>() * length)?,
     memory_type: std::marker::PhantomData,
     length,
   })
@@ -119,10 +120,10 @@ pub fn shared_memory_with_slice<T>(
 // Provides a shared memory between two processes, with synchronization.
 pub fn shared_memory_with_mutex<T>(
   is_owner: bool,
-  file_name: &str,
+  identifier: &str,
 ) -> Result<SharedMemoryWithMutex<T>, Box<dyn std::error::Error>> {
   let mutex_size = Mutex::size_of(None);
-  let memory = get_shared_memory(is_owner, file_name, mutex_size + std::mem::size_of::<T>())?;
+  let memory = get_shared_memory(is_owner, identifier, mutex_size + std::mem::size_of::<T>())?;
   let is_owner = memory.is_owner();
   let base_ptr = memory.as_ptr();
   let ptr = unsafe { base_ptr.add(Mutex::size_of(Some(base_ptr))) };
@@ -138,28 +139,29 @@ pub fn shared_memory_with_mutex<T>(
   })
 }
 
-fn get_shared_memory(
-  is_owner: bool,
-  file_name: &str,
-  size: usize,
-) -> Result<Shmem, Box<dyn std::error::Error>> {
-  let mut path = std::env::temp_dir();
-  path.push(file_name);
+fn get_shared_memory(is_owner: bool, identifier: &str, size: usize) -> anyhow::Result<Shmem> {
+  if identifier.len() >= 32 {
+    return Err(anyhow!(
+      "Tried to create shared memory with identifier {}, \
+      which is too long (macOS limits to 32 characters)",
+      identifier
+    ));
+  }
   Ok(if is_owner {
     ShmemConf::new()
       .size(size)
-      .flink(path)
+      .os_id(identifier)
       .force_create_flink()
       .create()
   } else {
-    ShmemConf::new().flink(path).open()
+    ShmemConf::new().os_id(identifier).open()
   }?)
   // // The following code doesn't need to know who is first, but if owner quits without
   // // deleting the flink it will panic!
   // Ok(
-  //     match ShmemConf::new().size(size).flink(file_name).create() {
+  //     match ShmemConf::new().size(size).flink(identifier).create() {
   //         Ok(m) => m,
-  //         Err(ShmemError::LinkExists) => ShmemConf::new().flink(file_name).open()?,
+  //         Err(ShmemError::LinkExists) => ShmemConf::new().flink(identifier).open()?,
   //         Err(e) => return Err(Box::new(e)),
   //     },
   // )

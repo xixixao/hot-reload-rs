@@ -1,9 +1,8 @@
-use hot_reload::simple_shared_memory::*;
 use minifb::{Key, Window, WindowOptions};
 
 const TARGET_FPS: f64 = 60.0;
 
-fn main() {
+fn main() -> Result<(), Box<dyn std::error::Error>> {
     let window_width = 300;
     let window_height = 300;
     let mut window = Window::new(
@@ -15,9 +14,7 @@ fn main() {
     .unwrap();
     window.limit_update_rate(Some(std::time::Duration::from_secs_f64(1.0 / TARGET_FPS)));
 
-    let window_len = window_width * window_height;
-
-    let hot_reloaded = HotReloaded::owner(window_width, window_height);
+    let mut hot_reloaded = hot_reloaded_state::owner(window_width, window_height)?;
 
     // let mut buffer = hot_reloaded.buffer();
     //     shared_memory_with_slice::<u32>(true, "hot_reload_buffer", window_len).unwrap();
@@ -34,4 +31,5 @@ fn main() {
             .update_with_buffer(hot_reloaded.buffer.get(), window_width, window_height)
             .unwrap();
     }
+    Ok(())
 }

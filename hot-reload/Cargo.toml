@@ -9,3 +9,5 @@ edition = "2018"
 [dependencies]
 shared_memory = { git = "https://github.com/xixixao/shared_memory-rs" , branch = "patch-1" }
 raw_sync = "0.1.5"
+rand = "0.8.0"
+anyhow = "1.0.37"

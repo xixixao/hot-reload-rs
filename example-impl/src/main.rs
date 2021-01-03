@@ -1,12 +1,10 @@
-use hot_reload::simple_shared_memory::*;
-
 fn main() {
     let window_width = 300;
     let window_height = 300;
     let window_len = window_width * window_height;
-    let mut buffer =
-        shared_memory_with_slice::<u32>(false, "hot_reload_buffer", window_len).unwrap();
-    buffer
+    let mut hot_reloaded = hot_reloaded_state::reloadable().unwrap();
+    hot_reloaded
+        .buffer
         .get()
         .copy_from_slice(&vec![color((1.0, 0.7, 0.0)); window_len]);
 }
