@@ -6,7 +6,12 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+default = ["hot-reload"]
+hot-reload = ["hot-reloaded-state/enabled"]
+
 [dependencies]
 minifb = "0.19.1"
 hot-reloaded-state = { path = "../hot-reloaded-state" }
 arraystring = "0.3.0"
+example-impl = { path = "../example-impl" }

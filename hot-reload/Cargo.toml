@@ -6,6 +6,9 @@ edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
+[features]
+enabled = []
+
 [dependencies]
 # shared_memory = { git = "https://github.com/xixixao/shared_memory-rs" , branch = "patch-1" }
 shared_memory = { path = "../shared_memory-rs" }

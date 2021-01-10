@@ -105,13 +105,19 @@ impl<T> SharedMemory<T> for SharedMemorySimple<T> {
 
 // This is a type-safe (but not synchronized) API for writing to shared memory.
 pub struct SharedMemorySlice<T> {
-  pub memory: Shmem,
+  memory: Shmem,
   memory_type: std::marker::PhantomData<T>,
-  length: usize,
+  pub length: usize,
 }
 
 impl<T> SharedMemory<[T]> for SharedMemorySlice<T> {
   fn get(&mut self) -> &mut [T] {
+    self.get()
+  }
+}
+
+impl<T> SharedMemorySlice<T> {
+  pub fn get(&mut self) -> &mut [T] {
     unsafe { std::slice::from_raw_parts_mut(&mut *(self.memory.as_ptr() as *mut T), self.length) }
   }
 }

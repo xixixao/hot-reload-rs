@@ -2,11 +2,24 @@
 
 A different take from https://github.com/irh/rust-hot-reloading and https://fasterthanli.me/articles/so-you-want-to-live-reload-rust on hot reloading in Rust. Instead of dynamically loaded libraries I use shared memory to communicate between the process running an OS window and the process that renders it.
 
-To run it, use:
+To run the example with hot reloading, use:
 
 ```sh
 cargo run
 ```
+
+from the root of the repository.
+
+To run the example without hot reloading, use:
+
+```sh
+cd example-app
+cargo run --no-default-features
+```
+
+(Currently it's not possible to configure features from the workspace root.)
+
+Note that the latter will still use shared memory, but instead of spawing a new process and a watcher it will spawn a child thread. You could instead put in more work and structure the two parts of the app described below in a way that would avoid using the `hot-reload` library entirely when not hot reloading.
 
 ## Why hot-reload?
 
