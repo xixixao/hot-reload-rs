@@ -29,6 +29,7 @@ At minimum, for minifb, we will want to have a shared `buffer` which the **reloa
 Other examples of shared state are:
 
 - User input, like clicks, can be passed from **owner** to **reloadable** via a channel.
+- Local information can be passed from **reloadable** to the **owner**
 
 ### 2. Create shared state definition
 
@@ -37,3 +38,7 @@ Using the `hot-reload` library. See `hot-reloaded-state`.
 ### 3. Split up the implementation
 
 See `example-app` and `example-impl`.
+
+## Gotchas
+
+There is one constraint which is not expressable in types atm: You cannot use any pointers or references in the shared state, since only a "slice" of memory is being shared between the processes. This rules out sharing built-in `vec`s, `str`s, and any types including `Box`es etc. These can be replaced either with the helpers this library provides or with other Rust libraries. In general data should be owned and concrete types need to be used to allow sharing of custom `struct`s.
