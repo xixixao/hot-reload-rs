@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 minifb = "0.19.1"
 hot-reloaded-state = { path = "../hot-reloaded-state" }
+arraystring = "0.3.0"

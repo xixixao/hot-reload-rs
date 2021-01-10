@@ -1,3 +1,4 @@
+use arraystring::CacheString;
 use hot_reload::serde::*;
 use hot_reload::*;
 
@@ -19,6 +20,7 @@ hot_reload!(
         buffer: slice::<u32>(|arguments: &Arguments| {
             arguments.window_width * arguments.window_height
         }),
-        signals: channel::<u32>(),
+        channel_to_impl: channel::<()>(),
+        channel_from_impl: channel::<CacheString>(),
     }
 );

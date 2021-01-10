@@ -31,7 +31,7 @@ pub type Shared<T> = Box<dyn SharedMemory<T>>;
 impl HotReload {
     pub fn new(process: Process) -> Self {
         let shared_memory_id_prefix = match process {
-            Process::Owner => format!("/{:X}", rand::random::<u64>()),
+            Process::Owner => format!("/{:X}", rand::random::<u32>()),
             Process::Reloadable => std::env::args().nth(1).unwrap(),
         };
         HotReload {
@@ -107,6 +107,30 @@ impl Drop for HotReload {
     }
 }
 
+/// Creates a new shared state between `owner` and `reloadable` processes.
+///
+/// Any data in the state must not contain pointers. It is the same as the data that
+/// would be allocated on the stack (unfortunately there is no Trait for this
+/// constraint in Rust).
+///
+/// # Examples
+///
+/// ```
+/// hot_reload!(
+///    // The name of the package that will be reloadable
+///    "example-impl",
+///    // The arguments passed to the reloadable package on initialization
+///    Arguments,
+///    // Template for the shared state struct
+///    struct HotReloaded {
+///        buffer: slice::<u32>(|arguments: &Arguments| {
+///            arguments.window_width * arguments.window_height
+///        }),
+///        channel_to_impl: channel::<()>(),
+///        channel_from_impl: channel::<str>(),
+///    }
+/// );
+/// ```
 #[macro_export]
 macro_rules! hot_reload {
     (

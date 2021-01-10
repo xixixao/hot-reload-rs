@@ -9,3 +9,4 @@ edition = "2018"
 [dependencies]
 hot-reload = { path = "../hot-reload" }
 serde = "1.0.118"
+arraystring = "0.3.0"

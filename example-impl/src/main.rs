@@ -1,3 +1,5 @@
+use arraystring::CacheString;
+
 fn main() {
     let window_width = 300;
     let window_height = 300;
@@ -7,8 +9,9 @@ fn main() {
         .buffer
         .get()
         .copy_from_slice(&vec![color((0.8, 0.7, 0.0)); window_len]);
+    let mut clicks_since_start = 0;
     loop {
-        let _ = hot_reloaded.signals.recv();
+        let _ = hot_reloaded.channel_to_impl.recv();
         hot_reloaded.buffer.get().copy_from_slice(&vec![
             color((
                 rand::random(),
@@ -17,6 +20,13 @@ fn main() {
             ));
             window_len
         ]);
+        clicks_since_start += 1;
+        hot_reloaded
+            .channel_from_impl
+            .send(&CacheString::from_str_truncate(format!(
+                "{}",
+                clicks_since_start
+            )));
     }
 }
 

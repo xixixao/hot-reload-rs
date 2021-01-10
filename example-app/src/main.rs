@@ -24,9 +24,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         if window.get_mouse_pos(MouseMode::Discard).is_some() {
             let is_mouse_down = window.get_mouse_down(MouseButton::Left);
             if !is_mouse_down && mouse_was_down {
-                hot_reloaded.signals.send(&1);
+                hot_reloaded.channel_to_impl.send(&());
             }
             mouse_was_down = is_mouse_down;
+        }
+        if let Some(count) = hot_reloaded.channel_from_impl.try_recv() {
+            window.set_title(format!("Render {}", count.as_str()).as_str());
         }
         window
             .update_with_buffer(hot_reloaded.buffer.get(), window_width, window_height)
