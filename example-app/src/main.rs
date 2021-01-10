@@ -1,4 +1,4 @@
-use minifb::{Key, Window, WindowOptions};
+use minifb::{Key, MouseButton, MouseMode, Window, WindowOptions};
 
 const TARGET_FPS: f64 = 60.0;
 
@@ -19,17 +19,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         window_height,
     })?;
 
-    // let mut buffer = hot_reloaded.buffer();
-    //     shared_memory_with_slice::<u32>(true, "hot_reload_buffer", window_len).unwrap();
-    // Initialize if we want to
-    // buffer
-    //     .get()
-    //     .copy_from_slice(&vec![color((1.0, 0.7, 0.0)); window_len]);
-
-    // #[cfg(not(feature = "hot_reload"))]
-    // render(buffer.get());
-
+    let mut mouse_was_down = false;
     while window.is_open() && !window.is_key_down(Key::Escape) {
+        if window.get_mouse_pos(MouseMode::Discard).is_some() {
+            let is_mouse_down = window.get_mouse_down(MouseButton::Left);
+            if !is_mouse_down && mouse_was_down {
+                hot_reloaded.signals.send(&1);
+            }
+            mouse_was_down = is_mouse_down;
+        }
         window
             .update_with_buffer(hot_reloaded.buffer.get(), window_width, window_height)
             .unwrap();

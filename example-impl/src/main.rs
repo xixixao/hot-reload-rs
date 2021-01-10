@@ -6,7 +6,18 @@ fn main() {
     hot_reloaded
         .buffer
         .get()
-        .copy_from_slice(&vec![color((1.0, 0.7, 0.0)); window_len]);
+        .copy_from_slice(&vec![color((0.8, 0.7, 0.0)); window_len]);
+    loop {
+        let _ = hot_reloaded.signals.recv();
+        hot_reloaded.buffer.get().copy_from_slice(&vec![
+            color((
+                rand::random(),
+                rand::random(),
+                0.0,
+            ));
+            window_len
+        ]);
+    }
 }
 
 pub fn color((r, g, b): (f64, f64, f64)) -> u32 {

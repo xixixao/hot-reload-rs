@@ -5,4 +5,7 @@ members = [
     "example-impl",
     "hot-reload",
     "hot-reloaded-state",
+    # For debugging
+    "raw_sync-rs",
+    "shared_memory-rs",
 ]

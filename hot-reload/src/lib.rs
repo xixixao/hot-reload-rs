@@ -1,21 +1,12 @@
 pub mod simple_shared_memory;
 pub extern crate serde;
+pub use simple_shared_memory::SharedChannel;
 pub use simple_shared_memory::SharedMemory;
 use simple_shared_memory::*;
 
 pub enum Process {
     Owner,
     Reloadable,
-}
-
-#[macro_export]
-macro_rules! reloadable_process_args {
-    ($n:literal) => {{
-        use std::convert::TryInto;
-        ((std::env::args().skip(2).collect::<Vec<String>>().try_into())
-            as std::result::Result<[String; 2], _>)
-            .map_err(|_| "Hot reload initialization failed")
-    }};
 }
 
 pub fn reloadable_process_args<T>() -> Result<T>
@@ -89,6 +80,16 @@ impl HotReload {
         )?))
     }
 
+    pub fn channel<T>(&self, name: &str) -> Result<Box<SharedChannel<T>>>
+    where
+        T: Copy,
+    {
+        Ok(Box::new(shared_channel(
+            self.is_owner(),
+            &self.memory_id(name),
+        )?))
+    }
+
     fn is_owner(&self) -> bool {
         matches!(self.process, Process::Owner)
     }
@@ -104,4 +105,97 @@ impl Drop for HotReload {
             let _ = handle.kill();
         }
     }
+}
+
+#[macro_export]
+macro_rules! hot_reload {
+    (
+        $project_name:literal,
+        $args_type_name:ident,
+        struct $state_struct_name:ident
+            {
+                $($field_name:ident : $field_type:ident::<$field_type_arg:ty>
+                    ( $( $declarator:expr)? )
+                ),+ $(,)?
+            }) => {
+        pub struct $state_struct_name {
+            hot_reload: HotReload,
+            $(pub $field_name: $crate::hot_reload_field_type!($field_type $field_type_arg),)+
+        }
+
+        pub fn owner(arguments: $args_type_name) -> Result<$state_struct_name> {
+            let mut state = setup(Process::Owner, &arguments)?;
+            state.hot_reload.start($project_name, &arguments)?;
+            Ok(state)
+        }
+
+        pub fn reloadable() -> Result<$state_struct_name> {
+            setup(Process::Reloadable, &reloadable_process_args()?)
+        }
+
+        fn setup(
+            process: Process,
+            arguments: &$args_type_name,
+        ) -> Result<$state_struct_name> {
+            let hot_reload = HotReload::new(process);
+
+            $(
+                let $field_name = $crate::hot_reload_field_definition!(
+                    $field_type,
+                    hot_reload,
+                    arguments,
+                    $field_name,
+                    $($declarator)?
+                );
+            )+
+
+            // let buffer = hot_reload.slice::<u32>("buffer", window_width * window_height)?;
+            Ok($state_struct_name {
+                hot_reload,
+                $($field_name,)+
+                // buffer
+            })
+        }
+    };
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! hot_reload_field_definition {
+    (
+        slice,
+        $reload_instance_name:ident,
+        $args_variable_name:ident,
+        $field_name:ident,
+        $declarator:expr) => {{
+        $reload_instance_name.slice(stringify!($field_name), $declarator($args_variable_name))?
+    }};
+    (
+        value,
+        $reload_instance_name:ident,
+        $args_variable_name:ident,
+        $field_name:ident,) => {{
+        $reload_instance_name.value(stringify!($field_name))?
+    }};
+    (
+        channel,
+        $reload_instance_name:ident,
+        $args_variable_name:ident,
+        $field_name:ident, ) => {{
+        $reload_instance_name.channel(stringify!($field_name))?
+    }};
+}
+
+#[doc(hidden)]
+#[macro_export]
+macro_rules! hot_reload_field_type {
+    (slice $type_arg:ty) => {
+        Box<dyn SharedMemory<[$type_arg]>>
+    };
+    (value $type_arg:ty) => {
+        Box<dyn SharedMemory<$type_arg>>
+    };
+    (channel $type_arg:ty) => {
+        Box<SharedChannel<$type_arg>>
+    };
 }

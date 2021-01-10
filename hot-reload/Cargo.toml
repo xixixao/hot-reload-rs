@@ -7,9 +7,13 @@ edition = "2018"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-shared_memory = { git = "https://github.com/xixixao/shared_memory-rs" , branch = "patch-1" }
-raw_sync = "0.1.5"
+# shared_memory = { git = "https://github.com/xixixao/shared_memory-rs" , branch = "patch-1" }
+shared_memory = { path = "../shared_memory-rs" }
+# raw_sync = "0.1.5"
+raw_sync = { path = "../raw_sync-rs" }
 rand = "0.8.0"
 anyhow = "1.0.37"
 serde = "1.0.118"
 ron = "0.6.4"
+signal-hook = "0.3.2"
+libc = "0.2.0"

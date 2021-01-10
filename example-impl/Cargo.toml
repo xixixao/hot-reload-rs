@@ -8,3 +8,5 @@ edition = "2018"
 
 [dependencies]
 hot-reloaded-state = { path = "../hot-reloaded-state" }
+rand = "0.8.0"
+signal-hook = "0.3.2"
