@@ -6,7 +6,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let window_width = 300;
     let window_height = 300;
     let mut window = Window::new(
-        "Raytracer",
+        "Hot Reload Demo",
         window_width,
         window_height,
         WindowOptions::default(),
